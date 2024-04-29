@@ -4,6 +4,8 @@ from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import Annotated, List
+from chain_conection import BotAI
+import datetime
 import models
 
 
@@ -42,9 +44,25 @@ def create_user(user_telegram_id:User, db:db_dependency):
     db.refresh(new_user)
     return {"user_id": new_user.id, "telegram_id": new_user.telegram_id}
 
-
 @app.post("/api/v1/message")
-def message(message:Message, db:db_dependency):
+async def message(message:Message, db:db_dependency):
     user = db.query(models.User).filter(models.User.telegram_id == str(message.chatId)).first()
+    response = {}
     if user:
-        return {"chat_id":message.chatId, "message":"The rest framework read the --{}--".format(message.messageText)}
+        bot = BotAI()
+        chain = bot.create_chain()
+        response = await chain.ainvoke({"query": message.messageText})
+        if response:
+            new_expense = models.Expense(
+                user_id = user.id,
+                description = response['expense_name'],
+                amount = response['amount'],
+                category = response['category'],
+                added_at = datetime.datetime.now()
+            )
+            db.add(new_expense)
+            try:
+                db.commit()
+            except IntegrityError:
+                db.rollback()
+    return {"chat_id":message.chatId, "message":response}

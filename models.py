@@ -9,7 +9,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     telegram_id = Column(Text, unique=True, nullable=False)
 
-class Expenses(Base):
+class Expense(Base):
     __tablename__ = 'expenses'
     
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
