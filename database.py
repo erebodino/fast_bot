@@ -1,8 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+import os
 
-URL_DATABASE = 'postgresql://postgres:machina123@localhost:5432/test_bot'
+PORT = os.environ.get('POSTGRESQL_PORT')
+DATABASE = os.environ.get('POSTGRESQL_DATABASE')
+USER = os.environ.get('POSTGRESQL_USER')
+HOST = os.environ.get('POSTGRESQL_HOST')
+PASSWORD = os.environ.get('POSTGRESQL_PASSWORD')
+
+URL_DATABASE = "postgresql://{}:{}@{}:{}/{}".format(USER,PASSWORD,HOST,PORT,DATABASE)
 
 engine = create_engine(URL_DATABASE)
 
