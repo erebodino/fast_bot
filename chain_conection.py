@@ -3,7 +3,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from typing import Optional
 from langchain_core.messages import AIMessage
+from langchain_anthropic import ChatAnthropic
 import json
+import os
+
+LLM_API_KEY = os.environ.get('LLM_API_KEY')
 
 class Expense(BaseModel):
     """
@@ -34,7 +38,8 @@ def extract_json(message: AIMessage) -> dict:
 
 class BotAI:
     def __init__(self):
-        self.llm = ChatOllama(model="llama3", temperature=0)
+        # self.llm = ChatOllama(model="llama3", temperature=0)
+        self.llm = ChatAnthropic(model='claude-3-opus-20240229', api_key=LLM_API_KEY)
     
     def create_prompt(self):
         self.prompt = ChatPromptTemplate.from_messages(

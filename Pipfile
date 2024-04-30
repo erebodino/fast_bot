@@ -9,6 +9,7 @@ uvicorn = {extras = ["standard"], version = "*"}
 sqlalchemy = "*"
 psycopg2-binary = "*"
 langchain = "*"
+langchain-anthropic = "*"
 
 [dev-packages]
 
