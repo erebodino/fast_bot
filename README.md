@@ -1,9 +1,10 @@
 
 # LLM expenses bot
 
-This project uses FastAPI and Langchain to manage incoming request from a TelegramBot, understand the message and in case that the message was an expense, persist it in database.
-
-
+Developed in Python, this service is tasked with the analysis of incoming
+messages to identify and extract expense details before persisting these details into the
+database. It's the core component responsible for interpreting user inputs and converting
+them into structured data for storage.
 
 
 ## Installation
