@@ -7,20 +7,25 @@ from langchain_anthropic import ChatAnthropic
 import json
 import os
 
-LLM_API_KEY = os.environ.get('LLM_API_KEY')
+LLM_API_KEY = os.environ.get("LLM_API_KEY")
+
 
 class Expense(BaseModel):
     """
     Information about the expense performed by an user.
     """
+
     expense_name: Optional[str] = Field(default=None, description="The expense itself.")
     category: Optional[str] = Field(
-        default=None, description="The category on which the expense belongs. Can be one of the following: Housing, Transportation, Food, Utilities, Insurance," \
-                                                "Medical/Healthcare, Savings, Debt, Education, Entertainment, and Other."
+        default=None,
+        description="The category on which the expense belongs. Can be one of the following: Housing, Transportation, Food, Utilities, Insurance,"
+        "Medical/Healthcare, Savings, Debt, Education, Entertainment, and Other.",
     )
     amount: Optional[float] = Field(
-        default=None, description="The amount of money spend on the expense, it can be given by the user in correct way as  40 USD, 23.33 ARS or another currency or with a slang (Bucks, Pesos, etc)"
+        default=None,
+        description="The amount of money spend on the expense, it can be given by the user in correct way as  40 USD, 23.33 ARS or another currency or with a slang (Bucks, Pesos, etc)",
     )
+
 
 def extract_json(message: AIMessage) -> dict:
     """
@@ -36,11 +41,12 @@ def extract_json(message: AIMessage) -> dict:
     except Exception:
         return {}
 
+
 class BotAI:
     def __init__(self):
         # self.llm = ChatOllama(model="llama3", temperature=0)
-        self.llm = ChatAnthropic(model='claude-3-opus-20240229', api_key=LLM_API_KEY)
-    
+        self.llm = ChatAnthropic(model="claude-3-opus-20240229", api_key=LLM_API_KEY)
+
     def create_prompt(self):
         self.prompt = ChatPromptTemplate.from_messages(
             [
@@ -55,12 +61,10 @@ class BotAI:
                 ),
                 ("human", "{query}"),
             ]
-            ).partial(schema=Expense.schema())
+        ).partial(schema=Expense.schema())
         return self.prompt
 
     def create_chain(self):
         self.chain = self.create_prompt() | self.llm | extract_json
         self.chain = self.chain.with_retry()
         return self.chain
-
-    
