@@ -19,11 +19,13 @@ Clone the project
 
 Using requeriments.txt
 ```bash
+  cd fast_bot
   pip install -r requirements.txt
 ```
 
 Using pipenv
 ```bash
+    cd fast_bot
     pipenv install
 ```
 
@@ -44,7 +46,6 @@ The project manage the conection to the database and the conection to the LLM mo
 ```
 ### Run service
 ```bash
-    cd fast_bot
     pipenv shell
     uvicorn main:app --reload
 ```
