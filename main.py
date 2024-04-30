@@ -1,36 +1,16 @@
-from pydantic import BaseModel
+
 from fastapi import FastAPI, Depends, HTTPException, status
-from database import engine, SessionLocal
-from sqlalchemy.orm import Session
+from database import engine, db_dependency
 from sqlalchemy.exc import IntegrityError
-from typing import Annotated, List
 from chain_conection import BotAI
-import datetime
+from anthropic import InternalServerError
+from schemas import User, Message
+from database_utils import get_user_by_telegram_id, add_expense_to_db
 import models
-
-
-class Message(BaseModel):
-    chatId: int
-    messageText: str
-
-
-class User(BaseModel):
-    telegram_id: str
 
 
 app = FastAPI()
 models.Base.metadata.create_all(bind=engine)
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-db_dependency = Annotated[Session, Depends(get_db)]
 
 
 @app.post("/create_user/")
@@ -40,8 +20,7 @@ def create_user(user_telegram_id: User, db: db_dependency):
     try:
         db.commit()
     except IntegrityError:
-        db.rollback()  # Es importante hacer rollback para limpiar la sesión de DB
-        # Levanta una excepción HTTP con un mensaje adecuado
+        db.rollback() 
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"The user with  telegram_id {user_telegram_id.telegram_id} already exists.",
@@ -52,27 +31,16 @@ def create_user(user_telegram_id: User, db: db_dependency):
 
 @app.post("/api/v1/message")
 async def message(message: Message, db: db_dependency):
-    user = (
-        db.query(models.User)
-        .filter(models.User.telegram_id == str(message.chatId))
-        .first()
-    )
     response = {}
-    if user:
+    user = get_user_by_telegram_id(db, message.chatId)    
+    if not user:
+        return {"chat_id": message.chatId, "message": response}
+    else:
         bot = BotAI()
         chain = bot.create_chain()
-        response = await chain.ainvoke({"query": message.messageText})
-        if response:
-            new_expense = models.Expense(
-                user_id=user.id,
-                description=response["expense_name"],
-                amount=response["amount"],
-                category=response["category"],
-                added_at=datetime.datetime.now(),
-            )
-            db.add(new_expense)
-            try:
-                db.commit()
-            except IntegrityError:
-                db.rollback()
-    return {"chat_id": message.chatId, "message": response}
+        try:
+            response = await chain.ainvoke({"query": message.messageText})
+            add_expense_to_db(db, user_id=user.id, expense_data = response)
+        except InternalServerError: #Due to overload from Anthropic
+            response = {'error_msg':'Cannot process your request, please try again later.'}  
+        return {"chat_id": message.chatId, "message": response}

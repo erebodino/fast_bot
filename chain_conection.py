@@ -9,10 +9,11 @@ import os
 
 LLM_API_KEY = os.environ.get("LLM_API_KEY")
 
-
 class Expense(BaseModel):
     """
     Information about the expense performed by an user.
+
+    Is used as a model for the LLM so it has a way to understand better the output required for the task.
     """
 
     expense_name: Optional[str] = Field(default=None, description="The expense itself.")
@@ -29,11 +30,10 @@ class Expense(BaseModel):
 
 def extract_json(message: AIMessage) -> dict:
     """
-    Extract and return the data for the expense in that exists. Return empty dict otherwise.
+    Extract and return the data for the expense in the case that exists. Return empty dict otherwise.
 
     Args:
         message (AIMessage): Message returned by the AI
-
     """
     text = message.content
     try:
@@ -43,11 +43,20 @@ def extract_json(message: AIMessage) -> dict:
 
 
 class BotAI:
+    """
+    Class to create a Bot and perform a LLM consult. The prompt is pre loaded to be able to perform the consult.
+    """
     def __init__(self):
-        # self.llm = ChatOllama(model="llama3", temperature=0)
-        self.llm = ChatAnthropic(model="claude-3-opus-20240229", api_key=LLM_API_KEY)
+        self.llm = ChatOllama(model="llama3", temperature=0)
+        # self.llm = ChatAnthropic(model="claude-3-opus-20240229", api_key=LLM_API_KEY, temperature=0)
 
-    def create_prompt(self):
+    def create_prompt(self) -> ChatPromptTemplate:
+        """
+        Method to create the prompt with the pre-loaded suggestions for the model.
+
+        Returns:
+            ChatPromptTemplate: ChatPromtTemplate with the sugestions to the model on how manage the information passed.
+        """
         self.prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -65,6 +74,10 @@ class BotAI:
         return self.prompt
 
     def create_chain(self):
+        """
+        Create a chain with the model, the promt and the extract function.
+        Set a retry policy due to problems with invoke and ainvoke.
+        """
         self.chain = self.create_prompt() | self.llm | extract_json
         self.chain = self.chain.with_retry()
         return self.chain
