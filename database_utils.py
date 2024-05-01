@@ -27,16 +27,15 @@ def add_expense_to_db(db:sessionmaker, user_id:str, expense_data:dict):
     category = expense_data.get("category",None)
     amount = expense_data.get("amount",None)
 
-    if expense_name and category and amount:
-        new_expense = models.Expense(
+    new_expense = models.Expense(
             user_id=user_id,
             description=expense_name,
             amount=amount,
             category=category,
             added_at=datetime.datetime.now(),
         )
-        db.add(new_expense)
-        try:
-            db.commit()
-        except IntegrityError:
-            db.rollback()
+    db.add(new_expense)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()

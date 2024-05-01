@@ -47,8 +47,7 @@ class BotAI:
     Class to create a Bot and perform a LLM consult. The prompt is pre loaded to be able to perform the consult.
     """
     def __init__(self):
-        self.llm = ChatOllama(model="llama3", temperature=0)
-        # self.llm = ChatAnthropic(model="claude-3-opus-20240229", api_key=LLM_API_KEY, temperature=0)
+        self.llm = ChatAnthropic(model="claude-3-opus-20240229", api_key=LLM_API_KEY, temperature=0)
 
     def create_prompt(self) -> ChatPromptTemplate:
         """

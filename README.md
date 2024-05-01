@@ -9,6 +9,8 @@ them into structured data for storage.
 
 ## Installation
 
+The script uses PostgreSQL database, in the instruction below all detailed all the steps to configure the conection.
+
 Clone the project
 
 ```bash
